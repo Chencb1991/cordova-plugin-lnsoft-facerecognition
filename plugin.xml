@@ -1,0 +1,39 @@
+
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="cordova-plugin-lnsoft-facerecognition" version="1.0.0" xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>FaceDetectPlugin</name>
+    <js-module name="FaceDetectPlugin" src="www/FaceDetectPlugin.js">
+        <clobbers target="navigator.lnsoft"/>
+    </js-module>
+    <platform name="android">
+        <config-file parent="/*" target="res/xml/config.xml">
+            <feature name="FaceDetectPlugin">
+                <param name="android-package" value="com.lnsoft.cordovaPlugins.FaceDetectPlugin"/>
+            </feature>
+        </config-file>
+        <source-file src="src/android/FaceDetectPlugin.java"
+                     target-dir="src/com/lnsoft/cordovaPlugins"/>
+        <source-file src="src/android/SquareView.java"
+                     target-dir="src/com/lnsoft/cordovaPlugins"/>
+        <config-file parent="/*" target="AndroidManifest.xml">
+            <!--外存储写权限，构建语法需要用到此权限 -->
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+            <!--外存储读权限，构建语法需要用到此权限 -->
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+            <!--相机权限-->
+            <uses-permission android:name="android.permission.CAMERA"/>
+        </config-file>
+        <source-file src="src/android/libs/arm64-v8a/libface-recognition.so" target-dir="app/src/main/jniLibs/arm64-v8a" />
+        <source-file src="src/android/libs/armeabi-v7a/libface-recognition.so" target-dir="app/src/main/jniLibs/armeabi-v7a" />
+        <source-file src="src/android/libs/face-recognition.jar" target-dir="app/libs" />
+    </platform>
+     <platform name="ios">
+        <config-file parent="/*" target="config.xml">
+            <feature name="FaceDetectPlugin">
+                <param name="ios-package" value="FaceDetectPlugin"/>
+            </feature>
+        </config-file>
+        <source-file src="src/ios/FaceDetectPlugin.mm"/>
+    </platform>
+</plugin>
