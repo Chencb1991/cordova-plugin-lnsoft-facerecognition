@@ -55,17 +55,30 @@ public class SquareView extends View {
         if (width == 0 || height == 0) {
             return;
         }
+        int root = Math.min(width, height);
+        int sizeLength = root *5/8;
         Paint paint = new Paint();
         paint.setStrokeWidth(5);
-        paint.setColor(Color.BLUE);
+        paint.setColor(Color.WHITE);
         paint.setStyle(Paint.Style.STROKE);
 
-        top = height / 4;
-        bottom = height * 3 / 4;
-        left = width / 4;
-        right = width * 3 / 4;
+        top = height / 2 - sizeLength / 2;
+        bottom = height / 2 + sizeLength / 2;
+        left = width / 2 - sizeLength / 2;
+        right = width / 2 + sizeLength / 2;
 
-        Rect rect = new Rect(left, top, right, bottom);
-        canvas.drawRect(rect, paint);
+        int lineLength = sizeLength / 10;
+        //四个角，八条短线
+        //pts数组每四个数代表一条线段
+        float[] pts = new float[]{
+                left, top, left + lineLength, top,//上边左线段
+                right - lineLength, top, right, top,//上边右线段
+                right, top, right, top + lineLength,//右边上线段
+                right, bottom - lineLength, right, bottom,//右边下线段
+                right, bottom, right - lineLength, bottom,//下边右线段
+                left + lineLength, bottom, left, bottom,//下边左线段
+                left, bottom, left, bottom - lineLength,//左边下线段
+                left, top + lineLength, left, top};//左边上线段
+        canvas.drawLines(pts, paint);
     }
 }

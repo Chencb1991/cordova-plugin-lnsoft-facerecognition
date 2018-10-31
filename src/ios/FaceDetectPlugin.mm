@@ -3,7 +3,7 @@
 #import <Cordova/CDV.h>
 #import <AVFoundation/AVFoundation.h>
 #import <pthread.h>
-
+#import "ScanningView.h"
 #define LFSCREEN_WIDTH [UIScreen mainScreen].bounds.size.width
 
 #ifdef DEBUG
@@ -69,7 +69,7 @@ typedef void (^requestAVAuthorizationStatusBlock)(AVAuthorizationStatus status);
     dispatch_queue_t _queue;
     faceIdentifyMessageBlock _block;
    
-    UIView * _lineView;
+    ScanningView * _lineView;
     AVCaptureVideoPreviewLayer * _previewLayer;
 }
 
@@ -129,12 +129,15 @@ typedef void (^requestAVAuthorizationStatusBlock)(AVAuthorizationStatus status);
 }
 
 - (void)addLineView{
-    _lineView = [UIView new];
+    _lineView = [ScanningView new];
     [self addSubview:_lineView];
-    _lineView.layer.borderColor = [UIColor blueColor].CGColor;
-    _lineView.layer.borderWidth = 5;
-    CGFloat width = self.frame.size.height * 0.5;
-    _lineView.frame = CGRectMake((self.frame.size.width -width) * 0.5 , (self.frame.size.height -width) * 0.5, width, width);
+//    _lineView.layer.borderColor = [UIColor blueColor].CGColor;
+//    _lineView.layer.borderWidth = 5;
+    CGFloat width = self.frame.size.height * 0.7;
+    _lineView.frame = CGRectMake((self.frame.size.width - width) * 0.5 , (self.frame.size.height -width) * 0.5, width, width);
+    _lineView.backgroundAlpha = 0;
+    _lineView.cornerColor = [UIColor whiteColor];
+    
 }
 
 - (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
@@ -240,7 +243,6 @@ typedef void (^requestAVAuthorizationStatusBlock)(AVAuthorizationStatus status);
         }else{
             rect2 = [obj CGRectValue];
             flag = (flag && CGRectEqualToRect(rect1, rect2));
-            flag = flag && (fabs(rect1.size.width - rect2.size.width)<=5);
 //            flag = flag && (fabs(rect1.size.height - rect2.size.height)<=10);
         }
     }
@@ -376,17 +378,14 @@ typedef void (^requestAVAuthorizationStatusBlock)(AVAuthorizationStatus status);
 }
 - (void)startPreview:(CDVInvokedUrlCommand*)command{
     NSArray * arguments = command.arguments;
-    CGSize size = (CGSize){LFSCREEN_WIDTH,300};
-    // w:h
+
+    CGFloat height = LFSCREEN_WIDTH * 0.75;
     if ((arguments!=nil)||(arguments.count)) {
-        NSString * height = arguments.firstObject;
-        if (height) {
-            size.height = [height floatValue];
-        }
+        height = LFSCREEN_WIDTH * [arguments.firstObject floatValue];
     }
     LNFaceCaremaView * caremaView;
     if (caremaView==nil) {
-        caremaView = [[LNFaceCaremaView alloc]initWithFrame:CGRectMake((LFSCREEN_WIDTH - size.width)*0.5, 0,size.width, size.height)];
+        caremaView = [[LNFaceCaremaView alloc]initWithFrame:CGRectMake(0, 0,LFSCREEN_WIDTH, height)];
         [self.webView.scrollView addSubview:caremaView];
         [self.webView insertSubview:caremaView belowSubview:self.webView.scrollView];
         self.webView.backgroundColor = [UIColor clearColor];
