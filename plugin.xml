@@ -29,11 +29,24 @@
         <source-file src="src/android/libs/face-recognition.jar" target-dir="app/libs" />
     </platform>
      <platform name="ios">
+        
         <config-file parent="/*" target="config.xml">
             <feature name="FaceDetectPlugin">
                 <param name="ios-package" value="FaceDetectPlugin"/>
             </feature>
         </config-file>
+
+        <header-file src="src/ios/face_recognition.hpp" />
+        <header-file src="src/ios/ScanningView.h" />
+        <source-file src="src/ios/ScanningView.m" />
         <source-file src="src/ios/FaceDetectPlugin.mm"/>
+
+
+        <source-file src="src/ios/libdlib-ios.a" />
+        <framework src="VideoToolbox.framework" />
+        <framework src="Accelerate.framework" />
+        <framework src="AVFoundation.framework" />
+        <framework src="src/ios/libdlib-ios.a" />
+
     </platform>
 </plugin>

@@ -131,8 +131,6 @@ typedef void (^requestAVAuthorizationStatusBlock)(AVAuthorizationStatus status);
 - (void)addLineView{
     _lineView = [ScanningView new];
     [self addSubview:_lineView];
-//    _lineView.layer.borderColor = [UIColor blueColor].CGColor;
-//    _lineView.layer.borderWidth = 5;
     CGFloat width = self.frame.size.height * 0.7;
     _lineView.frame = CGRectMake((self.frame.size.width - width) * 0.5 , (self.frame.size.height -width) * 0.5, width, width);
     _lineView.backgroundAlpha = 0;
@@ -148,14 +146,11 @@ typedef void (^requestAVAuthorizationStatusBlock)(AVAuthorizationStatus status);
 }
 - (void)startScanFace{
     // 删除上一次遗留的图片数据
-//    [[NSFileManager defaultManager]removeItemAtPath:imageFileDir() error:nil];
-//    [[NSFileManager defaultManager]removeItemAtPath:faceFileDir() error:nil];
-    
-    
+    [[NSFileManager defaultManager]removeItemAtPath:imageFileDir() error:nil];
+    [[NSFileManager defaultManager]removeItemAtPath:faceFileDir() error:nil];
     dispatch_async(dispatch_get_main_queue(), ^{
         [self addLineView];
     });
-    
     _queue = dispatch_queue_create("async_", DISPATCH_QUEUE_CONCURRENT);
     pthread_cond_init(&_cond, nullptr);
     pthread_mutex_init(&_mutex, nullptr);
@@ -179,6 +174,8 @@ typedef void (^requestAVAuthorizationStatusBlock)(AVAuthorizationStatus status);
             [_rects addObject:value1];
             if (CGRectEqualToRect(CGRectZero, frame)) {
                 LFLog(@"not face found");
+                //删除图片
+                [[NSFileManager defaultManager]removeItemAtPath:[NSString stringWithFormat:@"%s",path] error:nil];
             }else if([self checkValid]){
                 [_captureSession stopRunning];
                 if (_block) {
@@ -243,7 +240,6 @@ typedef void (^requestAVAuthorizationStatusBlock)(AVAuthorizationStatus status);
         }else{
             rect2 = [obj CGRectValue];
             flag = (flag && CGRectEqualToRect(rect1, rect2));
-//            flag = flag && (fabs(rect1.size.height - rect2.size.height)<=10);
         }
     }
     [_rects removeAllObjects];
@@ -311,11 +307,14 @@ typedef void (^requestAVAuthorizationStatusBlock)(AVAuthorizationStatus status);
     NSString *filePath = imageFilePath(fileName);
     LFLog(@"filepath == %@",filePath);
     NSError * error1;
-    BOOL result = [UIImageJPEGRepresentation(image,0.2) writeToFile:filePath options:NSAtomicWrite error:&error1];
-    UIImage * faceImage = [self clicpImageFromRect:_lineView.frame sourceImage:image];
+    BOOL result = [UIImageJPEGRepresentation(image,1) writeToFile:filePath options:NSAtomicWrite error:&error1];
+    
+    CGRect clicpRect = CGRectMake((LFSCREEN_WIDTH - self.frame.size.height)*0.5, (LFSCREEN_WIDTH - self.frame.size.height)*0.5, self.frame.size.height, self.frame.size.height);
+    
+    UIImage * faceImage = [self clicpImageFromRect:clicpRect sourceImage:image];
     NSString * clipFaceIconPath = faceFilePath(fileName);
     NSError * error2;
-    BOOL result1 = [UIImageJPEGRepresentation(faceImage,0.2) writeToFile:clipFaceIconPath options:NSAtomicWrite error:&error2];
+    BOOL result1 = [UIImageJPEGRepresentation(faceImage,1) writeToFile:clipFaceIconPath options:NSAtomicWrite error:&error2];
     if (error1||error2) {
         return;
     }
@@ -380,7 +379,7 @@ typedef void (^requestAVAuthorizationStatusBlock)(AVAuthorizationStatus status);
     NSArray * arguments = command.arguments;
 
     CGFloat height = LFSCREEN_WIDTH * 0.75;
-    if ((arguments!=nil)||(arguments.count)) {
+    if (arguments.count!=0) {
         height = LFSCREEN_WIDTH * [arguments.firstObject floatValue];
     }
     LNFaceCaremaView * caremaView;
