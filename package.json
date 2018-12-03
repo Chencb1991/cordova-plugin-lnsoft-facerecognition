@@ -1,7 +1,7 @@
 
 {
   "name": "cordova-plugin-lnsoft-facerecognition",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Apache Cordova 插件: 人脸识别",
   "cordova": {
     "id": "cordova-plugin-lnsoft-facerecognition",
@@ -19,7 +19,6 @@
     "cordova-ios",
     "cordova-android"
   ],
-  "author": "吴曰阳",
   "license": "Apache License 2.0",
   "bugs": {
     "url": "https://github.com/lnsoft/cordova-plugin-lnsoft-facerecognition/issues"
