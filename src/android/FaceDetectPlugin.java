@@ -54,11 +54,14 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.FileSystem;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -88,13 +91,17 @@ public class FaceDetectPlugin extends CordovaPlugin implements SurfaceHolder.Cal
     private double percentage;
     private boolean isSend = false;
     private int screenHeight;
+    private String dir;
 
+    File dirFile;
 
     @Override
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
         this.callbackContext = callbackContext;
         this.args = args;
-        tempFilePath = Environment.getExternalStorageDirectory().getPath() + "/temp.jpg";
+        dir = Environment.getExternalStorageDirectory().getAbsolutePath()  + "/football/";
+        dirFile = new File(dir);
+        tempFilePath =  dir+"temp.jpg";
         if (action.equals("startPreview")) {
             Activity activity = cordova.getActivity();
             //涉及UI改变，必须运行在UI线程里面
@@ -396,14 +403,18 @@ public class FaceDetectPlugin extends CordovaPlugin implements SurfaceHolder.Cal
 
     }
 
+    int  a=1;
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        yuvsave(data, camera);
+        a++;
+        if (a%3==0){
+            yuvsave(data, camera);
+        }
     }
 
     private double lastSendTime;
 
-    private void yuvsave(byte[] data, Camera camera) {
+    private synchronized void yuvsave(byte[] data, Camera camera) {
         if (System.currentTimeMillis() - lastSendTime < 100) {
             return;
         }
@@ -420,8 +431,13 @@ public class FaceDetectPlugin extends CordovaPlugin implements SurfaceHolder.Cal
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         image.compressToJpeg(rect, 50, out);
         try {
+
+            if (!dirFile.isDirectory())
+                dirFile.mkdirs();
             out.writeTo(new FileOutputStream(tempFilePath));
             out.close();
+
+
 
             if (!new File(tempFilePath).exists()) {
                 //截图没有保存成功，下面代码不执行
@@ -510,17 +526,63 @@ public class FaceDetectPlugin extends CordovaPlugin implements SurfaceHolder.Cal
         });
     }
 
+    /**
+     * @param 将图片内容解析成字节数组
+     * @param inStream
+     * @return byte[]
+     * @throws Exception
+     */
+    public static byte[] readStream(InputStream inStream) throws Exception {
+        byte[] buffer = new byte[1024];
+        int len = -1;
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        while ((len = inStream.read(buffer)) != -1) {
+            outStream.write(buffer, 0, len);
+        }
+        byte[] data = outStream.toByteArray();
+        outStream.close();
+        inStream.close();
+        return data;
+
+    }
+
+
+    private byte[] getBytes(String filePath){
+        byte[] buffer = null;
+        try {
+            File file = new File(filePath);
+            FileInputStream fis = new FileInputStream(file);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream(1000);
+            byte[] b = new byte[1000];
+            int n;
+            while ((n = fis.read(b)) != -1) {
+                bos.write(b, 0, n);
+            }
+            fis.close();
+            bos.close();
+            buffer = bos.toByteArray();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return buffer;
+    }
+
+
     private void success(String tempFilePath, Rect faceDetectRect) throws JSONException {
         if (isSend) {
             return;
         }
-        JSONObject message = new JSONObject();
-        message.put("imagePath", tempFilePath);
-        message.put("top", faceDetectRect.top);
-        message.put("right", faceDetectRect.right);
-        message.put("bottom", faceDetectRect.bottom);
-        message.put("left", faceDetectRect.left);
-        this.callbackContext.success(message);
+//        JSONObject message = new JSONObject();
+//        message.put("imagePath", tempFilePath);
+//        message.put("top", faceDetectRect.top);
+//        message.put("right", faceDetectRect.right);
+//        message.put("bottom", faceDetectRect.bottom);
+//        message.put("left", faceDetectRect.left);
+//        this.callbackContext.success(message);
+        PluginResult result = new PluginResult(PluginResult.Status.OK,getBytes(tempFilePath));
+        this.callbackContext.sendPluginResult(result);
         isSend = true;
         if (camera != null) {
             camera.setPreviewCallback(null);
